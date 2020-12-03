@@ -37,6 +37,7 @@ class Payload
     const ID_COUNTRY_CODE = '58';
     const ID_MERCHANT_NAME = '59';
     const ID_MERCHANT_CITY = '60';
+    const ID_POSTAL_CODE = '61';
     const ID_ADDITIONAL_DATA_FIELD_TEMPLATE = '62';
     const ID_ADDITIONAL_DATA_FIELD_TEMPLATE_TXID = '05';
     const ID_CRC16 = '63';
@@ -74,6 +75,13 @@ class Payload
      * @var \Stringy\Stringy
      */
     private $merchantCity;
+
+    /**
+     * CEP da localidade onde é efetuada a transação
+     *
+     * @var \Stringy\Stringy
+     */
+    private $postalCode;
 
     /**
      * ID da transação PIX
@@ -154,7 +162,10 @@ class Payload
      */
     public function setDescription($description)
     {
-        $this->description = Stringy::create($description)->toAscii()->toUpperCase();
+        $this->description = Stringy::create($description)
+            ->toAscii()
+            ->toUpperCase()
+            ->first(72);
 
         return $this;
     }
@@ -173,7 +184,10 @@ class Payload
      */
     public function setMerchantName($merchantName)
     {
-        $this->merchantName = Stringy::create($merchantName)->toAscii()->toUpperCase();
+        $this->merchantName = Stringy::create($merchantName)
+            ->toAscii()
+            ->toUpperCase()
+            ->first(25);
 
         return $this;
     }
@@ -192,7 +206,33 @@ class Payload
      */
     public function setMerchantCity($merchantCity)
     {
-        $this->merchantCity = Stringy::create($merchantCity)->toAscii()->toUpperCase();
+        $this->merchantCity = Stringy::create($merchantCity)
+            ->toAscii()
+            ->toUpperCase()
+            ->first(15);
+
+        return $this;
+    }
+
+
+    /**
+     * @return \Stringy\Stringy
+     */
+    public function getPostalCode()
+    {
+        return $this->postalCode;
+    }
+
+    /**
+     * @param string $postalCode
+     * @return Payload
+     */
+    public function setPostalCode($postalCode)
+    {
+        $this->postalCode = Stringy::create($postalCode)
+            ->toAscii()
+            ->toUpperCase()
+            ->first(99);
 
         return $this;
     }
@@ -313,6 +353,7 @@ class Payload
         $payload .= $this->getValue(self::ID_COUNTRY_CODE, 'BR');
         $payload .= $this->getValue(self::ID_MERCHANT_NAME, $this->merchantName);
         $payload .= $this->getValue(self::ID_MERCHANT_CITY, $this->merchantCity);
+        $payload .= !empty($this->postalCode) ? $this->getValue(self::ID_POSTAL_CODE, $this->postalCode) : '';
         $payload .= $this->getAdditionalDataFieldTemplate();
 
         return $payload . $this->getCRC16($payload);

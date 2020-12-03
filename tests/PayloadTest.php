@@ -15,10 +15,11 @@ class PayloadTest extends TestCase
             ->setDescription('Pagamento de Teste')
             ->setMerchantName('Heverton Coneglian')
             ->setMerchantCity('UMUARAMA')
+            ->setPostalCode('87502-250')
             ->setAmount(5)
             ->setTxid('123');
 
-        $expectedReturn = '00020126550014br.gov.bcb.pix0111836277105410218PAGAMENTO DE TESTE52040000530398654045.005802BR5918HEVERTON CONEGLIAN6008UMUARAMA62070503123630469E4';
+        $expectedReturn = '00020126550014br.gov.bcb.pix0111836277105410218PAGAMENTO DE TESTE52040000530398654045.005802BR5918HEVERTON CONEGLIAN6008UMUARAMA610987502-250620705031236304A70C';
         $this->assertEquals($expectedReturn, $payload->getPayload());
     }
 
