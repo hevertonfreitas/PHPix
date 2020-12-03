@@ -12,7 +12,7 @@ class QRCodeTest extends TestCase
         $payload = new Payload();
 
         $payload
-            ->setPixKey('12345678900')
+            ->setPixKey('836.277.105-41', Payload::PIX_KEY_CPF)
             ->setDescription('Pagamento de Teste')
             ->setMerchantName('Heverton Coneglian')
             ->setMerchantCity('UMUARAMA')

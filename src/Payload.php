@@ -3,6 +3,16 @@
 
 namespace Hevertonfreitas\PHPix;
 
+use Bissolli\ValidadorCpfCnpj\CNPJ;
+use Bissolli\ValidadorCpfCnpj\CPF;
+use Hevertonfreitas\PHPix\Exception\InvalidCNPJException;
+use Hevertonfreitas\PHPix\Exception\InvalidCPFException;
+use Hevertonfreitas\PHPix\Exception\InvalidEmailException;
+use Hevertonfreitas\PHPix\Exception\InvalidKeyException;
+use libphonenumber\PhoneNumberFormat;
+use libphonenumber\PhoneNumberUtil;
+use Stringy\Stringy;
+
 /**
  * Class Payload
  *
@@ -31,6 +41,12 @@ class Payload
     const ID_ADDITIONAL_DATA_FIELD_TEMPLATE_TXID = '05';
     const ID_CRC16 = '63';
 
+    const PIX_KEY_CPF = 1;
+    const PIX_KEY_CNPJ = 2;
+    const PIX_KEY_EMAIL = 3;
+    const PIX_KEY_PHONE = 4;
+    const PIX_KEY_RANDOM = 5;
+
     /**
      * Chave do PIX
      *
@@ -41,21 +57,21 @@ class Payload
     /**
      * Descrição do pagamento
      *
-     * @var string
+     * @var \Stringy\Stringy
      */
     private $description;
 
     /**
      * Nome do titular da conta
      *
-     * @var string
+     * @var \Stringy\Stringy
      */
     private $merchantName;
 
     /**
      * Cidade do titular da conta
      *
-     * @var string
+     * @var \Stringy\Stringy
      */
     private $merchantCity;
 
@@ -83,17 +99,49 @@ class Payload
 
     /**
      * @param string $pixKey
+     * @param int $tipo
      * @return Payload
      */
-    public function setPixKey($pixKey)
+    public function setPixKey($pixKey, $tipo)
     {
+        switch ($tipo) {
+            case self::PIX_KEY_CPF:
+                $cpf = new CPF($pixKey);
+                if (!$cpf->isValid()) {
+                    throw new InvalidCPFException();
+                }
+                $pixKey = preg_replace('/[^0-9]/', '', $pixKey);
+                break;
+            case self::PIX_KEY_CNPJ:
+                $cnpj = new CNPJ($pixKey);
+                if (!$cnpj->isValid()) {
+                    throw new InvalidCNPJException();
+                }
+                $pixKey = preg_replace('/[^0-9]/', '', $pixKey);
+                break;
+            case self::PIX_KEY_EMAIL:
+                if (filter_var($pixKey, FILTER_VALIDATE_EMAIL)) {
+                    throw new InvalidEmailException();
+                }
+                break;
+            case self::PIX_KEY_PHONE:
+                $phoneUtil = PhoneNumberUtil::getInstance();
+                $brazilianNumberProto = $phoneUtil->parse($pixKey, 'BR');
+                $pixKey = $phoneUtil->format($brazilianNumberProto, PhoneNumberFormat::E164);
+                break;
+            case self::PIX_KEY_RANDOM:
+                break;
+            default:
+                throw new InvalidKeyException();
+        }
+
         $this->pixKey = $pixKey;
 
         return $this;
     }
 
     /**
-     * @return string
+     * @return \Stringy\Stringy
      */
     public function getDescription()
     {
@@ -106,13 +154,13 @@ class Payload
      */
     public function setDescription($description)
     {
-        $this->description = $description;
+        $this->description = Stringy::create($description)->toAscii()->toUpperCase();
 
         return $this;
     }
 
     /**
-     * @return string
+     * @return \Stringy\Stringy
      */
     public function getMerchantName()
     {
@@ -125,13 +173,13 @@ class Payload
      */
     public function setMerchantName($merchantName)
     {
-        $this->merchantName = $merchantName;
+        $this->merchantName = Stringy::create($merchantName)->toAscii()->toUpperCase();
 
         return $this;
     }
 
     /**
-     * @return string
+     * @return \Stringy\Stringy
      */
     public function getMerchantCity()
     {
@@ -144,7 +192,7 @@ class Payload
      */
     public function setMerchantCity($merchantCity)
     {
-        $this->merchantCity = $merchantCity;
+        $this->merchantCity = Stringy::create($merchantCity)->toAscii()->toUpperCase();
 
         return $this;
     }
