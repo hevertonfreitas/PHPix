@@ -1,0 +1,23 @@
+{
+    "name": "hevertonfreitas/phpix",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Heverton Coneglian de Freitas",
+            "email": "hevertonconeglian@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4",
+        "mpdf/qrcode": "^1.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Hevertonfreitas\\PHPix\\": "src/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.4"
+    }
+}
