@@ -337,7 +337,7 @@ class Payload
         }
 
         //RETORNA CÓDIGO CRC16 DE 4 CARACTERES
-        return self::ID_CRC16 . '04' . strtoupper(dechex($resultado));
+        return self::ID_CRC16 . '04' . strtoupper(sprintf('%04x', $resultado));
     }
 
     /**
