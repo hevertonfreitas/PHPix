@@ -1,14 +1,13 @@
 <?php
-
+declare(strict_types=1);
 
 namespace Hevertonfreitas\PHPix;
 
-use Bissolli\ValidadorCpfCnpj\CNPJ;
-use Bissolli\ValidadorCpfCnpj\CPF;
 use Hevertonfreitas\PHPix\Exception\InvalidCNPJException;
 use Hevertonfreitas\PHPix\Exception\InvalidCPFException;
 use Hevertonfreitas\PHPix\Exception\InvalidEmailException;
 use Hevertonfreitas\PHPix\Exception\InvalidKeyException;
+use Hevertonfreitas\PHPix\Exception\InvalidRandomKeyException;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
 use Stringy\Stringy;
@@ -100,7 +99,7 @@ class Payload
     /**
      * @return string
      */
-    public function getPixKey()
+    public function getPixKey(): string
     {
         return $this->pixKey;
     }
@@ -108,27 +107,31 @@ class Payload
     /**
      * @param string $pixKey
      * @param int $tipo
-     * @return Payload
+     * @return \Hevertonfreitas\PHPix\Payload
+     * @throws \Hevertonfreitas\PHPix\Exception\InvalidCNPJException
+     * @throws \Hevertonfreitas\PHPix\Exception\InvalidCPFException
+     * @throws \Hevertonfreitas\PHPix\Exception\InvalidEmailException
+     * @throws \Hevertonfreitas\PHPix\Exception\InvalidKeyException
+     * @throws \Hevertonfreitas\PHPix\Exception\InvalidRandomKeyException
+     * @throws \libphonenumber\NumberParseException
      */
-    public function setPixKey($pixKey, $tipo)
+    public function setPixKey(string $pixKey, int $tipo): self
     {
         switch ($tipo) {
             case self::PIX_KEY_CPF:
-                $cpf = new CPF($pixKey);
-                if (!$cpf->isValid()) {
+                if (!Validation::validarCpf($pixKey)) {
                     throw new InvalidCPFException();
                 }
                 $pixKey = preg_replace('/[^0-9]/', '', $pixKey);
                 break;
             case self::PIX_KEY_CNPJ:
-                $cnpj = new CNPJ($pixKey);
-                if (!$cnpj->isValid()) {
+                if (!Validation::validarCnpj($pixKey)) {
                     throw new InvalidCNPJException();
                 }
                 $pixKey = preg_replace('/[^0-9]/', '', $pixKey);
                 break;
             case self::PIX_KEY_EMAIL:
-                if (filter_var($pixKey, FILTER_VALIDATE_EMAIL)) {
+                if (!filter_var($pixKey, FILTER_VALIDATE_EMAIL)) {
                     throw new InvalidEmailException();
                 }
                 break;
@@ -138,6 +141,9 @@ class Payload
                 $pixKey = $phoneUtil->format($brazilianNumberProto, PhoneNumberFormat::E164);
                 break;
             case self::PIX_KEY_RANDOM:
+                if (!Validation::validarUUID($pixKey)) {
+                    throw new InvalidRandomKeyException();
+                }
                 break;
             default:
                 throw new InvalidKeyException();
@@ -151,16 +157,16 @@ class Payload
     /**
      * @return \Stringy\Stringy
      */
-    public function getDescription()
+    public function getDescription(): Stringy
     {
         return $this->description;
     }
 
     /**
      * @param string $description
-     * @return Payload
+     * @return \Hevertonfreitas\PHPix\Payload
      */
-    public function setDescription($description)
+    public function setDescription(string $description): self
     {
         $this->description = Stringy::create($description)
             ->toAscii()
@@ -173,16 +179,16 @@ class Payload
     /**
      * @return \Stringy\Stringy
      */
-    public function getMerchantName()
+    public function getMerchantName(): Stringy
     {
         return $this->merchantName;
     }
 
     /**
      * @param string $merchantName
-     * @return Payload
+     * @return \Hevertonfreitas\PHPix\Payload
      */
-    public function setMerchantName($merchantName)
+    public function setMerchantName(string $merchantName): self
     {
         $this->merchantName = Stringy::create($merchantName)
             ->toAscii()
@@ -195,16 +201,16 @@ class Payload
     /**
      * @return \Stringy\Stringy
      */
-    public function getMerchantCity()
+    public function getMerchantCity(): Stringy
     {
         return $this->merchantCity;
     }
 
     /**
      * @param string $merchantCity
-     * @return Payload
+     * @return \Hevertonfreitas\PHPix\Payload
      */
-    public function setMerchantCity($merchantCity)
+    public function setMerchantCity(string $merchantCity): self
     {
         $this->merchantCity = Stringy::create($merchantCity)
             ->toAscii()
@@ -218,16 +224,16 @@ class Payload
     /**
      * @return \Stringy\Stringy
      */
-    public function getPostalCode()
+    public function getPostalCode(): Stringy
     {
         return $this->postalCode;
     }
 
     /**
      * @param string $postalCode
-     * @return Payload
+     * @return \Hevertonfreitas\PHPix\Payload
      */
-    public function setPostalCode($postalCode)
+    public function setPostalCode(string $postalCode): self
     {
         $this->postalCode = Stringy::create($postalCode)
             ->toAscii()
@@ -240,16 +246,16 @@ class Payload
     /**
      * @return string
      */
-    public function getTxid()
+    public function getTxid(): string
     {
         return $this->txid;
     }
 
     /**
      * @param string $txid
-     * @return Payload
+     * @return \Hevertonfreitas\PHPix\Payload
      */
-    public function setTxid($txid)
+    public function setTxid(string $txid): self
     {
         $this->txid = $txid;
 
@@ -259,16 +265,16 @@ class Payload
     /**
      * @return string
      */
-    public function getAmount()
+    public function getAmount(): string
     {
         return $this->amount;
     }
 
     /**
      * @param float $amount
-     * @return Payload
+     * @return \Hevertonfreitas\PHPix\Payload
      */
-    public function setAmount($amount)
+    public function setAmount(float $amount): self
     {
         $this->amount = number_format($amount, 2, '.', '');
 
@@ -278,11 +284,11 @@ class Payload
     /**
      * @param string $id
      * @param string $value
-     * @return $string
+     * @return string
      */
-    private function getValue($id, $value)
+    private function getValue($id, $value): string
     {
-        $size = str_pad(strlen($value), 2, '0', STR_PAD_LEFT);
+        $size = str_pad((string)strlen($value), 2, '0', STR_PAD_LEFT);
 
         return $id . $size . $value;
     }
@@ -290,13 +296,13 @@ class Payload
     /**
      * @return string
      */
-    private function getMerchantAccountInformation()
+    private function getMerchantAccountInformation(): string
     {
         $gui = $this->getValue(self::ID_MERCHANT_ACCOUNT_INFORMATION_GUI, 'br.gov.bcb.pix');
 
         $key = $this->getValue(self::ID_MERCHANT_ACCOUNT_INFORMATION_KEY, $this->pixKey);
 
-        $description = !empty($this->description) ? $this->getValue(self::ID_MERCHANT_ACCOUNT_INFORMATION_DESCRIPTION, $this->description) : '';
+        $description = !empty($this->description) ? $this->getValue(self::ID_MERCHANT_ACCOUNT_INFORMATION_DESCRIPTION, (string)$this->description) : '';
 
         return $this->getValue(self::ID_MERCHANT_ACCOUNT_INFORMATION, $gui . $key . $description);
     }
@@ -304,7 +310,7 @@ class Payload
     /**
      * @return string
      */
-    private function getAdditionalDataFieldTemplate()
+    private function getAdditionalDataFieldTemplate(): string
     {
         $txid = $this->getValue(self::ID_ADDITIONAL_DATA_FIELD_TEMPLATE_TXID, $this->txid);
 
@@ -314,9 +320,10 @@ class Payload
     /**
      * Método responsável por calcular o valor da hash de validação do código pix
      *
+     * @param string $payload
      * @return string
      */
-    private function getCRC16($payload)
+    private function getCRC16(string $payload): string
     {
         //ADICIONA DADOS GERAIS NO PAYLOAD
         $payload .= self::ID_CRC16 . '04';
@@ -343,7 +350,7 @@ class Payload
     /**
      * @return string
      */
-    public function getPayload()
+    public function getPayload(): string
     {
         $payload = $this->getValue(self::ID_PAYLOAD_FORMAT_INDICATOR, '01');
         $payload .= $this->getMerchantAccountInformation();
@@ -351,9 +358,9 @@ class Payload
         $payload .= $this->getValue(self::ID_TRANSACTION_CURRENCY, '986');
         $payload .= $this->getValue(self::ID_TRANSACTION_AMOUNT, $this->amount);
         $payload .= $this->getValue(self::ID_COUNTRY_CODE, 'BR');
-        $payload .= $this->getValue(self::ID_MERCHANT_NAME, $this->merchantName);
-        $payload .= $this->getValue(self::ID_MERCHANT_CITY, $this->merchantCity);
-        $payload .= !empty($this->postalCode) ? $this->getValue(self::ID_POSTAL_CODE, $this->postalCode) : '';
+        $payload .= $this->getValue(self::ID_MERCHANT_NAME, (string)$this->merchantName);
+        $payload .= $this->getValue(self::ID_MERCHANT_CITY, (string)$this->merchantCity);
+        $payload .= !empty($this->postalCode) ? $this->getValue(self::ID_POSTAL_CODE, (string)$this->postalCode) : '';
         $payload .= $this->getAdditionalDataFieldTemplate();
 
         return $payload . $this->getCRC16($payload);

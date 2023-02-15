@@ -1,8 +1,7 @@
 <?php
-
+declare(strict_types=1);
 
 namespace Hevertonfreitas\PHPix;
-
 
 use Mpdf\QrCode\Output\Png;
 
@@ -30,7 +29,7 @@ class QRCode
      * @return string
      * @throws \Mpdf\QrCode\QrCodeException
      */
-    public function getPngImage($size = 400)
+    public function getPngImage(int $size = 400): string
     {
         $qrcode = new \Mpdf\QrCode\QrCode($this->payload->getPayload());
 

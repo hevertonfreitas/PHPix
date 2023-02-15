@@ -1,8 +1,15 @@
 <?php
+declare(strict_types=1);
 
 namespace Hevertonfreitas\PHPix;
 
+use Hevertonfreitas\PHPix\Exception\InvalidCNPJException;
+use Hevertonfreitas\PHPix\Exception\InvalidCPFException;
+use Hevertonfreitas\PHPix\Exception\InvalidEmailException;
+use Hevertonfreitas\PHPix\Exception\InvalidKeyException;
+use Hevertonfreitas\PHPix\Exception\InvalidRandomKeyException;
 use PHPUnit\Framework\TestCase;
+use TypeError;
 
 class PayloadTest extends TestCase
 {
@@ -87,5 +94,92 @@ class PayloadTest extends TestCase
 
         $payload->setPixKey('44985487892', Payload::PIX_KEY_PHONE);
         $this->assertEquals('+5544985487892', $payload->getPixKey());
+    }
+
+
+    public function testPayloadKeyEmail()
+    {
+        $payload = new Payload();
+
+        $payload->setPixKey('foo@bar.com', Payload::PIX_KEY_EMAIL);
+        $this->assertEquals('foo@bar.com', $payload->getPixKey());
+    }
+
+    public function testPayloadKeyRandom()
+    {
+        $payload = new Payload();
+
+        $payload->setPixKey('c1991086-c5ab-4d2a-832e-731b1fe3177f', Payload::PIX_KEY_RANDOM);
+        $this->assertEquals('c1991086-c5ab-4d2a-832e-731b1fe3177f', $payload->getPixKey());
+    }
+
+    public function testInvalidCPF()
+    {
+        $this->expectException(InvalidCPFException::class);
+
+        $payload = new Payload();
+
+        $payload->setPixKey('142.277.105-42', Payload::PIX_KEY_CPF);
+    }
+
+    public function testInvalidCNPJ()
+    {
+        $this->expectException(InvalidCNPJException::class);
+
+        $payload = new Payload();
+
+        $payload->setPixKey('24.358.351/0001-38', Payload::PIX_KEY_CNPJ);
+    }
+
+    public function testInvalidEmail()
+    {
+        $this->expectException(InvalidEmailException::class);
+
+        $payload = new Payload();
+
+        $payload->setPixKey('231', Payload::PIX_KEY_EMAIL);
+    }
+
+    public function testInvalidRandomKey()
+    {
+        $this->expectException(InvalidRandomKeyException::class);
+
+        $payload = new Payload();
+
+        $payload->setPixKey('231', Payload::PIX_KEY_RANDOM);
+    }
+
+    public function testInvalidStringKey()
+    {
+        $this->expectException(TypeError::class);
+
+        $payload = new Payload();
+
+        $payload->setPixKey('231', 'foo');
+    }
+
+    public function testInvalidKey()
+    {
+        $this->expectException(InvalidKeyException::class);
+
+        $payload = new Payload();
+
+        $payload->setPixKey('231', 123);
+    }
+
+    public function testGetTxid()
+    {
+        $payload = new Payload();
+
+        $payload->setTxid('123');
+        $this->assertEquals('123', $payload->getTxid());
+    }
+
+    public function testGetPostalCode()
+    {
+        $payload = new Payload();
+
+        $payload->setPostalCode('87502250');
+        $this->assertEquals('87502250', (string)$payload->getPostalCode());
     }
 }
