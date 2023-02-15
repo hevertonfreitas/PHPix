@@ -52,49 +52,49 @@ class Payload
      *
      * @var string
      */
-    private $pixKey;
+    private string $pixKey;
 
     /**
      * Descrição do pagamento
      *
      * @var \Stringy\Stringy
      */
-    private $description;
+    private Stringy $description;
 
     /**
      * Nome do titular da conta
      *
      * @var \Stringy\Stringy
      */
-    private $merchantName;
+    private Stringy $merchantName;
 
     /**
      * Cidade do titular da conta
      *
      * @var \Stringy\Stringy
      */
-    private $merchantCity;
+    private Stringy $merchantCity;
 
     /**
      * CEP da localidade onde é efetuada a transação
      *
      * @var \Stringy\Stringy
      */
-    private $postalCode;
+    private Stringy $postalCode;
 
     /**
      * ID da transação PIX
      *
      * @var string
      */
-    private $txid;
+    private string $txid;
 
     /**
      * Valor da transação
      *
      * @var string
      */
-    private $amount;
+    private string $amount;
 
     /**
      * @return string
@@ -286,7 +286,7 @@ class Payload
      * @param string $value
      * @return string
      */
-    private function getValue($id, $value): string
+    private function getValue(string $id, string $value): string
     {
         $size = str_pad((string)strlen($value), 2, '0', STR_PAD_LEFT);
 
